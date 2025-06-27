@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Property Intelligence AI",
+  "version": "2.0.0",
+  "description": "AI property analysis for real estate sites",
+  
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  
+  "host_permissions": [
+    "*://*.zillow.com/*",
+    "*://*.realtor.com/*",
+    "*://*.redfin.com/*"
+  ],
+  
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.zillow.com/*",
+        "*://*.realtor.com/*",
+        "*://*.redfin.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end",
+      "all_frames": false
+    }
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Property Intelligence AI"
+  }
+}

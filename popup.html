@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            width: 440px;
+            height: 750px;
+            padding: 16px;
+            background: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            overflow-y: auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2563eb;
+        }
+        
+        .header h1 {
+            color: #2563eb;
+            font-size: 18px;
+            margin: 0;
+        }
+        
+        .site-status {
+            background: #f0f9ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            text-align: center;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .analyze-btn {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        .analyze-btn:disabled {
+            background: #9ca3af;
+        }
+        
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 13px;
+            display: none;
+        }
+        
+        .status-message.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-message.error {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        
+        .status-message.loading {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .property-results {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .property-header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .price {
+            font-size: 24px;
+            color: #059669;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .basic-info {
+            color: #64748b;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .address {
+            color: #475569;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        
+        .analysis-section {
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 8px;
+            padding: 6px 0;
+            border-bottom: 1px solid #d1d5db;
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+        }
+        
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 8px 10px;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+            font-size: 12px;
+        }
+        
+        .data-label {
+            color: #6b7280;
+            flex: 1;
+        }
+        
+        .data-value {
+            font-weight: bold;
+            color: #1f2937;
+            text-align: right;
+        }
+        
+        .data-value.bonus {
+            color: #059669;
+        }
+        
+        .data-value.warning {
+            color: #dc2626;
+        }
+        
+        .sub-item {
+            margin-left: 15px;
+            font-size: 11px;
+            color: #6b7280;
+        }
+        
+        .ai-score {
+            background: #2563eb;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        
+        .score-title {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .score-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .score-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .api-badge {
+            background: #10b981;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+        
+        /* Confidence Indicators */
+        .confidence-high {
+            color: #10b981;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+        
+        .confidence-medium {
+            color: #f59e0b;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+        
+        .confidence-low {
+            color: #ef4444;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+        
+        .confidence-none {
+            color: #9ca3af;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+        
+        .confidence-summary {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 5px;
+            padding: 12px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .confidence-summary h4 {
+            margin: 0 0 10px 0;
+            color: #374151;
+            font-size: 12px;
+        }
+        
+        .confidence-item {
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+        
+        .confidence-category {
+            font-weight: bold;
+            color: #4b5563;
+        }
+        
+        .confidence-level {
+            margin-left: 5px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+        
+        .confidence-level.high {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .confidence-level.medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .confidence-level.low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .confidence-level.estimated {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .confidence-explanation {
+            color: #6b7280;
+            font-size: 10px;
+            margin-top: 2px;
+            font-style: italic;
+        }
+        
+        .explanation-text {
+            background: #f0f9ff;
+            border-left: 3px solid #3b82f6;
+            padding: 8px;
+            margin-top: 5px;
+            font-size: 11px;
+            color: #1e40af;
+            display: none;
+        }
+        
+        .score-confidence {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏡 Property Intelligence AI</h1>
+        <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px;">
+            Validated real-time analysis 
+            <span class="api-badge">VERIFIED</span>
+        </p>
+    </div>
+    
+    <div class="site-status" id="siteStatus">
+        Checking current site...
+    </div>
+    
+    <button class="analyze-btn" id="analyzeBtn">
+        🔍 Analyze This Property
+    </button>
+    
+    <div class="status-message" id="statusMessage"></div>
+    
+    <div class="property-results" id="propertyResults">
+        <!-- Property Header -->
+        <div class="property-header">
+            <div class="price" id="propertyPrice">$0</div>
+            <div class="basic-info" id="basicInfo">0 bed • 0 bath • 0 sqft</div>
+            <div class="address" id="propertyAddress">Address</div>
+        </div>
+        
+        <!-- Location & Transportation -->
+        <div class="analysis-section">
+            <div class="section-title">🛫 Location & Transportation</div>
+            <div class="data-grid">
+                <div class="data-row">
+                    <div class="data-label">Distance to Airport</div>
+                    <div class="data-value" id="airportDistance">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Airport Type</div>
+                    <div class="data-value" id="airportType">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Walk Score</div>
+                    <div class="data-value" id="walkScore">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Average Commute Time</div>
+                    <div class="data-value" id="avgCommutTime">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Demographics & Economics -->
+        <div class="analysis-section">
+            <div class="section-title">📊 Demographics & Economics</div>
+            <div class="data-grid">
+                <div class="data-row">
+                    <div class="data-label">Median Household Income</div>
+                    <div class="data-value" id="medianIncome">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Median Home Value</div>
+                    <div class="data-value" id="medianHomeValue">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Home Ownership Rate</div>
+                    <div class="data-value" id="homeOwnership">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">College Educated</div>
+                    <div class="data-value" id="collegeEducated">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Schools & Education -->
+        <div class="analysis-section">
+            <div class="section-title">🏫 Schools & Education</div>
+            <div class="data-grid">
+                <div class="data-row">
+                    <div class="data-label">Average School Rating</div>
+                    <div class="data-value" id="schoolRating">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Elementary Schools</div>
+                    <div class="data-value" id="elementarySchools">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Total Schools Nearby</div>
+                    <div class="data-value" id="totalSchools">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Local Amenities -->
+        <div class="analysis-section">
+            <div class="section-title">🛒 Local Amenities</div>
+            <div class="data-grid">
+                <div class="data-row">
+                    <div class="data-label">Grocery Stores</div>
+                    <div class="data-value" id="groceryStores">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Restaurants</div>
+                    <div class="data-value" id="restaurants">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Hospitals</div>
+                    <div class="data-value" id="hospitals">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Restaurant % (Wealth Indicator)</div>
+                    <div class="data-value" id="restaurantPercentage">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Market Analysis -->
+        <div class="analysis-section">
+            <div class="section-title">📈 Market Analysis</div>
+            <div class="data-grid">
+                <div class="data-row">
+                    <div class="data-label">Market Trend</div>
+                    <div class="data-value" id="marketTrend">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Days on Market</div>
+                    <div class="data-value" id="daysOnMarket">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Price per Sqft</div>
+                    <div class="data-value" id="pricePerSqft">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Financial Information -->
+        <div class="analysis-section">
+            <div class="section-title">💰 Financial Information</div>
+            <div class="data-grid">
+                <div class="data-row">
+                    <div class="data-label">Property Tax Rate</div>
+                    <div class="data-value" id="propertyTaxRate">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Property Age</div>
+                    <div class="data-value" id="propertyAge">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Climate & Environment -->
+        <div class="analysis-section">
+            <div class="section-title">🌤️ Climate & Environment</div>
+            <div class="data-grid">
+                <div class="data-row">
+                    <div class="data-label">Climate Rating</div>
+                    <div class="data-value" id="climateRating">-</div>
+                </div>
+            </div>
+            <div class="explanation-text" id="climateExplanation"></div>
+            <div class="explanation-text" id="climateDetails"></div>
+        </div>
+        
+        <!-- AI Score with Confidence -->
+        <div class="ai-score">
+            <div class="score-title">Enhanced AI Property Score</div>
+            <div class="score-number" id="aiScore">--</div>
+            <div class="score-subtitle">Based on validated real-time data</div>
+            <div class="score-confidence" id="scoreConfidence">Calculating confidence...</div>
+        </div>
+        
+        <!-- Confidence Summary -->
+        <div class="confidence-summary" id="confidenceSummary"></div>
+        
+        <!-- Legend -->
+        <div style="margin-top: 15px; padding: 10px; background: #f9fafb; border-radius: 5px; font-size: 11px;">
+            <div style="font-weight: bold; margin-bottom: 5px; color: #374151;">Confidence Indicators:</div>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <span><span class="confidence-high">●</span> High (80%+)</span>
+                <span><span class="confidence-medium">●</span> Medium (60-80%)</span>
+                <span><span class="confidence-low">●</span> Low (30-60%)</span>
+                <span><span class="confidence-none">●</span> Estimated (<30%)</span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
