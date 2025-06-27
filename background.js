@@ -203,7 +203,7 @@ async function handleGooglePlaces(lat, lng, type, sendResponse) {
 // Universal GPT-4 OpenAI API handler
 async function handleOpenAIAnalysis(prompt, sendResponse) {
     console.log('=== UNIVERSAL GPT-4 ANALYSIS ===');
-    console.log('Prompt length:', prompt.length);
+    console.log('Prompt:', prompt);
     
     try {
         const requestBody = {
@@ -229,7 +229,10 @@ Provide thorough, accurate answers with specific data points and insights, just 
             ],
             max_tokens: 3000, // Increased for detailed responses
             temperature: 0.1, // Low for factual accuracy
-            top_p: 0.1
+            top_p: 0.1,
+            response_format: {
+              "type": "json_object"
+            },
         };
         
         console.log('Making Universal GPT-4 request...');
@@ -508,7 +511,7 @@ async function handleFullPropertyAnalysis(propertyData, locationInfo, countyData
     console.log('Step 2: Getting AI analysis...');
     try {
       const prompt = createAnalysisPrompt(propertyData, locationInfo, countyData, analysisResults.googleData);
-      
+      console.log('AI analysis prompt created:', prompt.length, 'characters');
       const aiResult = await new Promise((resolve) => {
         handleOpenAIAnalysis(prompt, resolve);
       });
