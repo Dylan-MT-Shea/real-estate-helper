@@ -13,7 +13,9 @@
   "host_permissions": [
     "*://*.zillow.com/*",
     "*://*.realtor.com/*",
-    "*://*.redfin.com/*"
+    "*://*.redfin.com/*",
+    "https://maps.googleapis.com/*",
+    "https://api.openai.com/*"
   ],
   
   "content_scripts": [
