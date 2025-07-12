@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Property Intelligence AI",
-  "version": "2.0.0",
-  "description": "AI property analysis for real estate sites",
+  "name": "Enhanced Property Intelligence AI",
+  "version": "4.0.0",
+  "description": "Enhanced AI property analysis with comprehensive Google Location Intelligence APIs",
   
   "permissions": [
     "activeTab",
@@ -15,7 +15,10 @@
     "*://*.realtor.com/*",
     "*://*.redfin.com/*",
     "https://maps.googleapis.com/*",
-    "https://api.openai.com/*"
+    "https://api.openai.com/*",
+    "https://places.googleapis.com/*",
+    "https://geocoding.googleapis.com/*",
+    "https://api.weatherapi.com/*"
   ],
   
   "content_scripts": [
@@ -37,6 +40,13 @@
   
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Property Intelligence AI"
-  }
+    "default_title": "Enhanced Property Intelligence AI"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
