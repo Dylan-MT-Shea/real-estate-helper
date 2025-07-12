@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <style>
         body {
-            width: 440px;
-            height: 750px;
+            width: 480px;
+            height: 900px;
             padding: 16px;
             background: white;
             font-family: Arial, sans-serif;
@@ -24,6 +24,30 @@
             color: #2563eb;
             font-size: 18px;
             margin: 0;
+        }
+        
+        .header p {
+            margin: 5px 0 0 0;
+            color: #64748b;
+            font-size: 12px;
+        }
+        
+        .comprehensive-badge {
+            background: #10b981;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+        
+        .api-badge {
+            background: #f59e0b;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 5px;
         }
         
         .site-status {
@@ -111,67 +135,201 @@
         }
         
         .analysis-section {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .section-title {
             font-size: 14px;
             font-weight: bold;
             color: #374151;
-            margin-bottom: 8px;
-            padding: 6px 0;
-            border-bottom: 1px solid #d1d5db;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 2px solid #d1d5db;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-icon {
+            margin-right: 8px;
+            font-size: 16px;
         }
         
         .data-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 6px;
+            gap: 8px;
         }
         
         .data-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             background: white;
-            padding: 8px 10px;
-            border-radius: 4px;
+            padding: 10px 12px;
+            border-radius: 6px;
             border: 1px solid #e5e7eb;
             font-size: 12px;
+            min-height: 20px;
         }
         
         .data-label {
             color: #6b7280;
             flex: 1;
+            font-weight: 500;
         }
         
         .data-value {
             font-weight: bold;
             color: #1f2937;
             text-align: right;
+            flex: 1.5;
+            line-height: 1.3;
         }
         
-        .data-value.bonus {
+        .data-value.good {
             color: #059669;
         }
         
         .data-value.warning {
+            color: #d97706;
+        }
+        
+        .data-value.bad {
             color: #dc2626;
         }
         
-        .sub-item {
-            margin-left: 15px;
-            font-size: 11px;
-            color: #6b7280;
+        /* Detailed Lists for Names */
+        .detail-list {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 8px;
+            max-height: 150px;
+            overflow-y: auto;
         }
         
+        .detail-list-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #d1d5db;
+            padding-bottom: 3px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            font-size: 10px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-name {
+            color: #374151;
+            flex: 1;
+            font-weight: 500;
+        }
+        
+        .detail-distance {
+            color: #6b7280;
+            font-weight: bold;
+            white-space: nowrap;
+            margin-left: 8px;
+        }
+        
+        .detail-rating {
+            color: #059669;
+            font-size: 9px;
+            margin-left: 4px;
+        }
+        
+        /* Enhanced indicators */
+        .enhanced-indicator {
+            background: #10b981;
+            color: white;
+            font-size: 9px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin-left: 6px;
+        }
+        
+        /* Climate section */
+        .climate-section {
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .weather-current {
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .current-temp {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .current-condition {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+        
+        .current-details {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+        
+        .climate-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .climate-metric {
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        
+        .climate-metric-title {
+            font-size: 10px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        
+        .climate-metric-value {
+            font-size: 12px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        
+        /* AI Score */
         .ai-score {
             background: #2563eb;
             color: white;
             padding: 20px;
             text-align: center;
-            border-radius: 5px;
-            margin-top: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
         }
         
         .score-title {
@@ -190,122 +348,31 @@
             opacity: 0.8;
         }
         
-        .api-badge {
-            background: #10b981;
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 3px;
-            margin-left: 5px;
-        }
-        
-        /* Confidence Indicators */
-        .confidence-high {
-            color: #10b981;
-            font-size: 10px;
-            margin-left: 4px;
-        }
-        
-        .confidence-medium {
-            color: #f59e0b;
-            font-size: 10px;
-            margin-left: 4px;
-        }
-        
-        .confidence-low {
-            color: #ef4444;
-            font-size: 10px;
-            margin-left: 4px;
-        }
-        
-        .confidence-none {
-            color: #9ca3af;
-            font-size: 10px;
-            margin-left: 4px;
-        }
-        
-        .confidence-summary {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 5px;
-            padding: 12px;
-            margin-top: 15px;
-            display: none;
-        }
-        
-        .confidence-summary h4 {
-            margin: 0 0 10px 0;
-            color: #374151;
-            font-size: 12px;
-        }
-        
-        .confidence-item {
-            margin-bottom: 8px;
-            font-size: 11px;
-        }
-        
-        .confidence-category {
-            font-weight: bold;
-            color: #4b5563;
-        }
-        
-        .confidence-level {
-            margin-left: 5px;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-        }
-        
-        .confidence-level.high {
-            background: #dcfce7;
-            color: #166534;
-        }
-        
-        .confidence-level.medium {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        
-        .confidence-level.low {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        
-        .confidence-level.estimated {
-            background: #f3f4f6;
-            color: #6b7280;
-        }
-        
-        .confidence-explanation {
-            color: #6b7280;
-            font-size: 10px;
-            margin-top: 2px;
-            font-style: italic;
-        }
-        
-        .explanation-text {
-            background: #f0f9ff;
-            border-left: 3px solid #3b82f6;
-            padding: 8px;
-            margin-top: 5px;
-            font-size: 11px;
-            color: #1e40af;
-            display: none;
-        }
-        
         .score-confidence {
             font-size: 11px;
             opacity: 0.9;
             margin-top: 5px;
         }
+        
+        /* Coordinates display */
+        .coordinates-display {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 15px;
+            font-size: 11px;
+            text-align: center;
+            color: #166534;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🏡 Property Intelligence AI</h1>
-        <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px;">
-            Validated real-time analysis 
-            <span class="api-badge">VERIFIED</span>
+        <h1>🏡 Comprehensive Property Intelligence AI</h1>
+        <p>Complete analysis with detailed location intelligence
+            <span class="comprehensive-badge">COMPREHENSIVE</span>
+            <span class="api-badge">10 APIS</span>
         </p>
     </div>
     
@@ -320,6 +387,11 @@
     <div class="status-message" id="statusMessage"></div>
     
     <div class="property-results" id="propertyResults">
+        <!-- Coordinates Display -->
+        <div class="coordinates-display" id="coordinatesDisplay">
+            📍 Coordinates: Loading...
+        </div>
+        
         <!-- Property Header -->
         <div class="property-header">
             <div class="price" id="propertyPrice">$0</div>
@@ -327,160 +399,251 @@
             <div class="address" id="propertyAddress">Address</div>
         </div>
         
-        <!-- Location & Transportation -->
+        <!-- Transportation & Airport Access -->
         <div class="analysis-section">
-            <div class="section-title">🛫 Location & Transportation</div>
+            <div class="section-title">
+                <span class="section-icon">✈️</span>
+                Transportation & Airport Access
+                <span class="enhanced-indicator">ENHANCED</span>
+            </div>
             <div class="data-grid">
                 <div class="data-row">
-                    <div class="data-label">Distance to Airport</div>
-                    <div class="data-value" id="airportDistance">-</div>
+                    <div class="data-label">Nearest International Airport</div>
+                    <div class="data-value" id="internationalAirport">Loading...</div>
                 </div>
                 <div class="data-row">
-                    <div class="data-label">Airport Type</div>
-                    <div class="data-value" id="airportType">-</div>
+                    <div class="data-label">Nearest Regional Airport</div>
+                    <div class="data-value" id="regionalAirport">Loading...</div>
                 </div>
                 <div class="data-row">
-                    <div class="data-label">Walk Score</div>
-                    <div class="data-value" id="walkScore">-</div>
+                    <div class="data-label">Distance to Major City</div>
+                    <div class="data-value" id="nearestCity">Loading...</div>
                 </div>
                 <div class="data-row">
-                    <div class="data-label">Average Commute Time</div>
-                    <div class="data-value" id="avgCommutTime">-</div>
+                    <div class="data-label">Road Access Quality</div>
+                    <div class="data-value" id="roadAccessQuality">Loading...</div>
+                </div>
+            </div>
+            
+            <!-- Airport Details List -->
+            <div class="detail-list" id="airportDetailsList">
+                <div class="detail-list-title">Airport Details</div>
+                <div id="airportDetails">Loading airport information...</div>
+            </div>
+        </div>
+        
+        <!-- Commercial Amenities & Wealth Indicators -->
+        <div class="analysis-section">
+            <div class="section-title">
+                <span class="section-icon">🛒</span>
+                Commercial Amenities & Wealth Indicators
+                <span class="enhanced-indicator">ENHANCED</span>
+            </div>
+            <div class="data-grid">
+                <div class="data-row">
+                    <div class="data-label">Grocery Stores (5km radius)</div>
+                    <div class="data-value" id="groceryStoreCount">Loading...</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Restaurants (5km radius)</div>
+                    <div class="data-value" id="restaurantCount">Loading...</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Consumer Shops (5km radius)</div>
+                    <div class="data-value" id="consumerShopCount">Loading...</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Restaurant % (Wealth Indicator)</div>
+                    <div class="data-value" id="restaurantPercentage">Loading...</div>
+                </div>
+            </div>
+            
+            <!-- Grocery Store Names -->
+            <div class="detail-list" id="groceryDetailsList">
+                <div class="detail-list-title">Nearest Grocery Stores</div>
+                <div id="groceryStoreNames">Loading grocery store names...</div>
+            </div>
+            
+            <!-- Restaurant Names -->
+            <div class="detail-list" id="restaurantDetailsList">
+                <div class="detail-list-title">Nearest Restaurants</div>
+                <div id="restaurantNames">Loading restaurant names...</div>
+            </div>
+        </div>
+        
+        <!-- Healthcare & Recreation -->
+        <div class="analysis-section">
+            <div class="section-title">
+                <span class="section-icon">🏥</span>
+                Healthcare & Recreation
+                <span class="enhanced-indicator">ENHANCED</span>
+            </div>
+            <div class="data-grid">
+                <div class="data-row">
+                    <div class="data-label">Hospitals (20km radius)</div>
+                    <div class="data-value" id="hospitalCount">Loading...</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Parks & Recreation (10km radius)</div>
+                    <div class="data-value" id="parkCount">Loading...</div>
+                </div>
+            </div>
+            
+            <!-- Hospital Names for CMS Rating Pairing -->
+            <div class="detail-list" id="hospitalDetailsList">
+                <div class="detail-list-title">Hospital Names (for CMS Rating Pairing)</div>
+                <div id="hospitalNames">Loading hospital names...</div>
+            </div>
+            
+            <!-- Park Names -->
+            <div class="detail-list" id="parkDetailsList">
+                <div class="detail-list-title">Nearby Parks & Recreation</div>
+                <div id="parkNames">Loading park names...</div>
+            </div>
+        </div>
+        
+        <!-- Geographic & Environmental -->
+        <div class="analysis-section">
+            <div class="section-title">
+                <span class="section-icon">🌄</span>
+                Geographic & Environmental
+                <span class="enhanced-indicator">ENHANCED</span>
+            </div>
+            <div class="data-grid">
+                <div class="data-row">
+                    <div class="data-label">Elevation</div>
+                    <div class="data-value" id="elevationData">Loading...</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Terrain Type</div>
+                    <div class="data-value" id="terrainType">Loading...</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Landscape Character</div>
+                    <div class="data-value" id="landscapeCharacter">Loading...</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Direction of Sunset</div>
+                    <div class="data-value" id="sunsetDirection">Loading...</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Elevation Variation</div>
+                    <div class="data-value" id="elevationVariation">Loading...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Climate & Weather -->
+        <div class="analysis-section">
+            <div class="section-title">
+                <span class="section-icon">🌤️</span>
+                Climate & Weather
+            </div>
+            <div class="climate-section">
+                <div class="weather-current">
+                    <div class="current-temp" id="currentTemp">--°F</div>
+                    <div class="current-condition" id="currentCondition">Loading weather...</div>
+                    <div class="current-details" id="currentDetails">Loading details...</div>
+                </div>
+                
+                <div class="climate-grid">
+                    <div class="climate-metric">
+                        <div class="climate-metric-title">Air Quality Index</div>
+                        <div class="climate-metric-value" id="airQualityIndex">--</div>
+                    </div>
+                    
+                    <div class="climate-metric">
+                        <div class="climate-metric-title">Air Quality Rating</div>
+                        <div class="climate-metric-value" id="airQualityRating">--</div>
+                    </div>
+                    
+                    <div class="climate-metric">
+                        <div class="climate-metric-title">Climate Risk</div>
+                        <div class="climate-metric-value" id="climateRisk">--</div>
+                    </div>
+                    
+                    <div class="climate-metric">
+                        <div class="climate-metric-title">Solar Potential</div>
+                        <div class="climate-metric-value" id="solarPotential">--</div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <!-- Demographics & Economics -->
         <div class="analysis-section">
-            <div class="section-title">📊 Demographics & Economics</div>
+            <div class="section-title">
+                <span class="section-icon">📊</span>
+                Demographics & Economics
+            </div>
             <div class="data-grid">
                 <div class="data-row">
                     <div class="data-label">Median Household Income</div>
-                    <div class="data-value" id="medianIncome">-</div>
+                    <div class="data-value" id="medianIncome">Loading...</div>
                 </div>
                 <div class="data-row">
-                    <div class="data-label">Median Home Value</div>
-                    <div class="data-value" id="medianHomeValue">-</div>
+                    <div class="data-label">Walk Score</div>
+                    <div class="data-value" id="walkScore">Loading...</div>
                 </div>
                 <div class="data-row">
-                    <div class="data-label">Home Ownership Rate</div>
-                    <div class="data-value" id="homeOwnership">-</div>
+                    <div class="data-label">School Rating</div>
+                    <div class="data-value" id="schoolRating">Loading...</div>
                 </div>
                 <div class="data-row">
-                    <div class="data-label">College Educated</div>
-                    <div class="data-value" id="collegeEducated">-</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Schools & Education -->
-        <div class="analysis-section">
-            <div class="section-title">🏫 Schools & Education</div>
-            <div class="data-grid">
-                <div class="data-row">
-                    <div class="data-label">Average School Rating</div>
-                    <div class="data-value" id="schoolRating">-</div>
-                </div>
-                <div class="data-row">
-                    <div class="data-label">Elementary Schools</div>
-                    <div class="data-value" id="elementarySchools">-</div>
-                </div>
-                <div class="data-row">
-                    <div class="data-label">Total Schools Nearby</div>
-                    <div class="data-value" id="totalSchools">-</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Local Amenities -->
-        <div class="analysis-section">
-            <div class="section-title">🛒 Local Amenities</div>
-            <div class="data-grid">
-                <div class="data-row">
-                    <div class="data-label">Grocery Stores</div>
-                    <div class="data-value" id="groceryStores">-</div>
-                </div>
-                <div class="data-row">
-                    <div class="data-label">Restaurants</div>
-                    <div class="data-value" id="restaurants">-</div>
-                </div>
-                <div class="data-row">
-                    <div class="data-label">Hospitals</div>
-                    <div class="data-value" id="hospitals">-</div>
-                </div>
-                <div class="data-row">
-                    <div class="data-label">Restaurant % (Wealth Indicator)</div>
-                    <div class="data-value" id="restaurantPercentage">-</div>
+                    <div class="data-label">Market Trend</div>
+                    <div class="data-value" id="marketTrend">Loading...</div>
                 </div>
             </div>
         </div>
         
         <!-- Market Analysis -->
         <div class="analysis-section">
-            <div class="section-title">📈 Market Analysis</div>
+            <div class="section-title">
+                <span class="section-icon">📈</span>
+                Market Analysis
+            </div>
             <div class="data-grid">
-                <div class="data-row">
-                    <div class="data-label">Market Trend</div>
-                    <div class="data-value" id="marketTrend">-</div>
-                </div>
                 <div class="data-row">
                     <div class="data-label">Days on Market</div>
-                    <div class="data-value" id="daysOnMarket">-</div>
+                    <div class="data-value" id="daysOnMarket">Loading...</div>
                 </div>
                 <div class="data-row">
-                    <div class="data-label">Price per Sqft</div>
-                    <div class="data-value" id="pricePerSqft">-</div>
+                    <div class="data-label">Price per Square Foot</div>
+                    <div class="data-value" id="pricePerSqft">Loading...</div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Financial Information -->
-        <div class="analysis-section">
-            <div class="section-title">💰 Financial Information</div>
-            <div class="data-grid">
                 <div class="data-row">
                     <div class="data-label">Property Tax Rate</div>
-                    <div class="data-value" id="propertyTaxRate">-</div>
+                    <div class="data-value" id="propertyTaxRate">Loading...</div>
                 </div>
                 <div class="data-row">
                     <div class="data-label">Property Age</div>
-                    <div class="data-value" id="propertyAge">-</div>
+                    <div class="data-value" id="propertyAge">Loading...</div>
                 </div>
             </div>
         </div>
         
-        <!-- Climate & Environment -->
-        <div class="analysis-section">
-            <div class="section-title">🌤️ Climate & Environment</div>
-            <div class="data-grid">
-                <div class="data-row">
-                    <div class="data-label">Climate Rating</div>
-                    <div class="data-value" id="climateRating">-</div>
-                </div>
-            </div>
-            <div class="explanation-text" id="climateExplanation"></div>
-            <div class="explanation-text" id="climateDetails"></div>
-        </div>
-        
-        <!-- AI Score with Confidence -->
+        <!-- Comprehensive AI Score -->
         <div class="ai-score">
-            <div class="score-title">Enhanced AI Property Score</div>
+            <div class="score-title">Comprehensive AI Property Score</div>
             <div class="score-number" id="aiScore">--</div>
-            <div class="score-subtitle">Based on validated real-time data</div>
-            <div class="score-confidence" id="scoreConfidence">Calculating confidence...</div>
+            <div class="score-subtitle">Based on comprehensive location intelligence</div>
+            <div class="score-confidence" id="scoreConfidence">Calculating comprehensive confidence...</div>
         </div>
         
-        <!-- Confidence Summary -->
-        <div class="confidence-summary" id="confidenceSummary"></div>
-        
-        <!-- Legend -->
-        <div style="margin-top: 15px; padding: 10px; background: #f9fafb; border-radius: 5px; font-size: 11px;">
-            <div style="font-weight: bold; margin-bottom: 5px; color: #374151;">Confidence Indicators:</div>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <span><span class="confidence-high">●</span> High (80%+)</span>
-                <span><span class="confidence-medium">●</span> Medium (60-80%)</span>
-                <span><span class="confidence-low">●</span> Low (30-60%)</span>
-                <span><span class="confidence-none">●</span> Estimated (<30%)</span>
+        <!-- Data Sources Legend -->
+        <div style="margin-top: 15px; padding: 12px; background: #f9fafb; border-radius: 6px; font-size: 11px;">
+            <div style="font-weight: bold; margin-bottom: 8px; color: #374151;">Comprehensive Data Sources:</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 10px;">
+                <span>🏠 Property Extraction</span>
+                <span>🌐 Enhanced Geocoding</span>
+                <span>✈️ Airport Database</span>
+                <span>🏙️ City Distance Matrix</span>
+                <span>🛣️ Road Access Analysis</span>
+                <span>🛒 Commercial Amenities</span>
+                <span>🏥 Healthcare & Parks</span>
+                <span>🏔️ Elevation Analysis</span>
+                <span>🌤️ Weather Intelligence</span>
+                <span>🤖 AI Market Analysis</span>
             </div>
         </div>
     </div>
