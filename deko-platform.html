@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deko - Property Intelligence Platform</title>
+  <style>
+    :root { --deko-green: #133201; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--deko-green) 0%, #395122 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--deko-green);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: #666;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+      font-size: 1.1rem;
+    }
+    .nav-link.active {
+      color: var(--deko-green);
+      font-weight: bold;
+      border-bottom: 2.5px solid var(--deko-green);
+      padding-bottom: 0.2em;
+      background: linear-gradient(transparent 70%, #e5f4e1 100%);
+      border-radius: 3px 3px 0 0;
+    }
+    .nav-link:hover {
+      color: var(--deko-green);
+    }
+    .user-profile {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #f8fafc;
+      padding: 0.75rem 1rem;
+      border-radius: 25px;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .user-profile:hover {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--deko-green) 0%, #395122 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    .user-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      padding: 1rem;
+      min-width: 280px;
+      z-index: 1001;
+      display: none;
+      margin-top: 0.5rem;
+    }
+    .user-dropdown.show { display: block; }
+    .dropdown-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 0.75rem;
+    }
+    .dropdown-avatar {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--deko-green) 0%, #395122 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .user-details h3 {
+      margin: 0 0 0.25rem 0;
+      color: #1f2937;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .user-plan {
+      color: #10b981;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .mode-success-msg {
+      background: #ecfdf5;
+      color: #059669;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #bbf7d0;
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+      display: none;
+    }
+    .mode-select-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #1f2937;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    .mode-select {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    .portfolio-summary {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin: 0.75rem 0;
+    }
+    .portfolio-value {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #059669;
+      margin-bottom: 0.25rem;
+    }
+    .account-stats {
+      font-size: 0.8rem;
+      color: #6b7280;
+      line-height: 1.3;
+    }
+    .dropdown-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .dropdown-action {
+      background: none;
+      border: none;
+      padding: 0.5rem;
+      text-align: left;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #374151;
+      transition: background 0.2s;
+    }
+    .dropdown-action:hover {
+      background: #f3f4f6;
+    }
+    .main-content {
+      margin-top: 80px;
+      padding: 2rem;
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .properties-section,
+    .favorites-section {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    .tab-section {
+      display: none;
+    }
+    .tab-section.active {
+      display: block;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #1f2937;
+    }
+    .add-property-btn {
+      background: var(--deko-green);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .add-property-btn:hover {
+      background: #1e4802;
+      transform: translateY(-2px);
+    }
+    .add-property-form {
+      display: none;
+      margin-top: 12px;
+      gap: 0.5rem;
+    }
+    .add-property-form input {
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #e5e8f0;
+    }
+    .add-property-form button {
+      margin-right: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: none;
+      font-weight: 600;
+      background: var(--deko-green);
+      color: white;
+      cursor: pointer;
+    }
+    .add-property-form button:last-child {
+      background: #f3f4f6;
+      color: #374151;
+    }
+    .properties-grid, .favorites-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 1.5rem;
+    }
+    .property-card {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+      border: 1px solid #e5e7eb;
+      transition: all 0.3s;
+      position: relative;
+      min-height: 370px;
+    }
+    .property-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    .property-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+    .property-price {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #059669;
+    }
+    .property-status {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .property-address {
+      color: #6b7280;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .property-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .detail-item {
+      text-align: center;
+      padding: 0.5rem;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+    .detail-value {
+      font-weight: bold;
+      color: #1f2937;
+      font-size: 1.1rem;
+    }
+    .detail-label {
+      color: #6b7280;
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+    }
+    .property-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+    }
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.25rem 0;
+    }
+    .metric-label { color: #6b7280; }
+    .metric-value { font-weight: 600; color: #1f2937; }
+    .property-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .action-btn {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+    .deep-analysis-btn {
+      background: var(--deko-green);
+      color: white;
+      flex: 0 0 auto;
+      min-width: 90px;
+    }
+    .deep-analysis-btn:hover { background: #1e4802; }
+    .view-btn {
+      background: #e5e7eb;
+      color: #222;
+      margin-left: 0.5em;
+      flex: 0 0 auto;
+    }
+    .view-btn:hover {
+      background: #cbd5e1;
+      color: #1e4802;
+    }
+    .favorite-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.6rem;
+      margin-left: 8px;
+      color: #bbb;
+      transition: color 0.2s;
+      padding: 2px 5px;
+      flex: 0 0 auto;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .favorite-btn.favorited {
+      color: #e53935;
+    }
+    .favorite-btn svg {
+      vertical-align: middle;
+      width: 1.5em;
+      height: 1.5em;
+      pointer-events: none;
+      display: block;
+    }
+    .favorite-btn.favorited svg .heart-fill {
+      fill: #e53935;
+      stroke: #e53935;
+    }
+    .favorite-btn svg .heart-fill {
+      fill: none;
+      stroke: #bbb;
+      stroke-width: 2.5;
+    }
+    .favorite-btn:not(.favorited):hover svg .heart-fill {
+      stroke: #e53935;
+    }
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #be123c;
+      font-size: 2.2rem;
+      font-weight: bold;
+      position: absolute;
+      left: 10px;
+      bottom: 14px;
+      z-index: 2;
+      cursor: pointer;
+      padding: 2px 11px 2px 7px;
+      border-radius: 50%;
+      transition: background 0.2s, color 0.2s;
+      line-height: 1;
+      box-shadow: none;
+      opacity: 0.95;
+      outline: none;
+    }
+    .delete-btn:hover {
+      background: #be123c;
+      color: #fff;
+    }
+    .analysis-result {
+      margin-top: 10px;
+      background: #f1f5f9;
+      padding: 12px;
+      border-radius: 5px;
+      font-size: 0.9em;
+      max-height: 400px;
+      overflow-y: auto;
+      display: none;
+    }
+    .analysis-result pre {
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 0.85em;
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    @media (max-width: 768px) {
+      .main-content { padding: 1rem; }
+      .properties-grid, .favorites-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+<header class="header">
+  <nav class="nav">
+    <div class="logo">🏡 Deko</div>
+    <div class="nav-links">
+      <a href="#" class="nav-link" id="dashboardTab" onclick="switchTab('analyzed')">Dashboard</a>
+      <a href="#" class="nav-link" id="favoritesTab" onclick="switchTab('favorites')">Favorites</a>
+      <a href="#" class="nav-link">Compare</a>
+      <a href="#" class="nav-link">Analytics</a>
+      <a href="#" class="nav-link">Reports</a>
+    </div>
+    <div class="user-profile">
+      <div class="user-avatar" id="userAvatar" onclick="toggleUserDropdown(event)">AR</div>
+      <div id="userDisplayName" onclick="toggleUserDropdown(event)">Alex Rodriguez</div>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="dropdown-header">
+          <div class="dropdown-avatar" id="dropdownAvatar">AR</div>
+          <div class="user-details">
+            <h3 id="dropdownUserName">Alex Rodriguez</h3>
+            <div class="user-plan" id="dropdownUserPlan">Pro Plan</div>
+          </div>
+        </div>
+        <div class="mode-success-msg" id="modeSuccessMsg">Mode updated!</div>
+        <label for="investorModeSelect" class="mode-select-label">Investor Mode:</label>
+        <select id="investorModeSelect" class="mode-select" onchange="changeInvestorMode(this.value)">
+          <option value="flip">Flip</option>
+          <option value="homeowner">Homeowner</option>
+          <option value="rental">Landlord</option>
+        </select>
+        <div class="portfolio-summary">
+          <div class="portfolio-value">Portfolio: $2.8M</div>
+          <div class="account-stats">
+            23 properties analyzed<br>
+            47 AI reports generated<br>
+            12 markets tracked
+          </div>
+        </div>
+        <div class="dropdown-actions">
+          <button class="dropdown-action">⚙️ Account Settings</button>
+          <button class="dropdown-action">📊 Usage Analytics</button>
+          <button class="dropdown-action">💳 Billing & Plans</button>
+          <button class="dropdown-action">🚪 Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<main class="main-content">
+  <div class="properties-section tab-section" id="analyzedSection">
+    <div class="section-header">
+      <h2 class="section-title">Your Analyzed Properties</h2>
+      <button class="add-property-btn" onclick="showAddProperty()">+ Add Property</button>
+    </div>
+    <form id="addPropertyForm" class="add-property-form">
+      <input id="addressInput" placeholder="Address" required />
+      <input id="priceInput" type="number" placeholder="Price" required />
+      <input id="bedroomsInput" type="number" placeholder="Bedrooms" min="0" required />
+      <input id="bathroomsInput" type="number" placeholder="Bathrooms" min="0" required />
+      <input id="sqftInput" type="number" placeholder="Sqft" min="0" required />
+      <button type="submit">Save</button>
+      <button type="button" onclick="hideAddProperty()">Cancel</button>
+    </form>
+    <div class="properties-grid" id="propertiesGrid"></div>
+  </div>
+  <div class="favorites-section tab-section" id="favoritesSection">
+    <div class="section-header">
+      <h2 class="section-title">Favorites</h2>
+    </div>
+    <div class="favorites-grid" id="favoritesGrid"></div>
+  </div>
+</main>
+<script>
+const API_BASE_URL = 'http://localhost:4000/api';
+let allProperties = [];
+let favoritePropertyIds = JSON.parse(localStorage.getItem('favoritePropertyIds') || '[]');
+let currentUserMode = "flip";
+let currentTab = "analyzed";
+let propertyAnalyses = {};
+
+const modePrompts = {
+  flip: { label: "Flip" },
+  homeowner: { label: "Homeowner" },
+  rental: { label: "Landlord" }
+};
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('analyzedSection').classList.toggle('active', tab === 'analyzed');
+  document.getElementById('favoritesSection').classList.toggle('active', tab === 'favorites');
+  document.getElementById('dashboardTab').classList.toggle('active', tab === 'analyzed');
+  document.getElementById('favoritesTab').classList.toggle('active', tab === 'favorites');
+  loadProperties();
+}
+
+async function loadUserInfoAndMode() {
+  try {
+    const resp = await fetch(`${API_BASE_URL}/user/me`);
+    const user = await resp.json();
+    const initials = (user.name || "A").split(" ").map(x => x[0]).join("").substring(0,2).toUpperCase();
+    document.getElementById('userAvatar').textContent = initials;
+    document.getElementById('dropdownAvatar').textContent = initials;
+    document.getElementById('userDisplayName').textContent = user.name;
+    document.getElementById('dropdownUserName').textContent = user.name;
+    document.getElementById('dropdownUserPlan').textContent = user.plan || "Pro Plan";
+    const modeSelect = document.getElementById('investorModeSelect');
+    if (user.mode) modeSelect.value = user.mode;
+    currentUserMode = user.mode || "flip";
+  } catch (e) {
+    console.error('Error loading user info:', e);
+  }
+}
+
+async function changeInvestorMode(mode) {
+  try {
+    await fetch(`${API_BASE_URL}/user/mode`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode })
+    });
+    const msg = document.getElementById('modeSuccessMsg');
+    msg.style.display = 'block';
+    msg.textContent = "Mode updated to " + mode.charAt(0).toUpperCase() + mode.slice(1) + "!";
+    setTimeout(() => { msg.style.display = 'none'; }, 1500);
+    currentUserMode = mode;
+    await loadUserInfoAndMode();
+    await loadProperties();
+  } catch (e) {
+    alert("Could not update mode. Please try again.");
+  }
+}
+
+async function fetchProperties() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/properties`);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    showApiError('Unable to load properties. Make sure your backend server is running on localhost:4000');
+    return [];
+  }
+}
+
+function showApiError(message) {
+  const errorDiv = document.createElement('div');
+  errorDiv.style.cssText = `position: fixed; top: 90px; right: 20px; background: #fef2f2; color: #dc2626; padding: 1rem; border-radius: 8px; border: 1px solid #fca5a5; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 1000; max-width: 300px; font-size: 0.9rem;`;
+  errorDiv.innerHTML = `<div style="font-weight: 600; margin-bottom: 0.5rem;">⚠️ Connection Error</div><div>${message}</div>`;
+  document.body.appendChild(errorDiv);
+  setTimeout(() => { if (errorDiv.parentNode) errorDiv.parentNode.removeChild(errorDiv); }, 5000);
+}
+
+function toggleFavorite(propertyId) {
+  const idx = favoritePropertyIds.indexOf(propertyId);
+  if (idx === -1) {
+    favoritePropertyIds.push(propertyId);
+  } else {
+    favoritePropertyIds.splice(idx, 1);
+  }
+  localStorage.setItem('favoritePropertyIds', JSON.stringify(favoritePropertyIds));
+  loadProperties();
+}
+
+async function deleteProperty(propertyId) {
+  allProperties = allProperties.filter(p => p._id !== propertyId);
+  const idx = favoritePropertyIds.indexOf(propertyId);
+  if (idx !== -1) {
+    favoritePropertyIds.splice(idx, 1);
+    localStorage.setItem('favoritePropertyIds', JSON.stringify(favoritePropertyIds));
+  }
+  loadProperties();
+  try {
+    await fetch(`${API_BASE_URL}/properties/${propertyId}`, { method: "DELETE" });
+  } catch (e) {
+    showApiError("Could not delete property from server.");
+  }
+}
+
+async function runAnalysis(propertyId) {
+  console.log('Starting analysis for property:', propertyId, 'Mode:', currentUserMode);
+  
+  const btn = document.getElementById(`runAnalysisBtn-${propertyId}`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = 'Analyzing...';
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/analyze`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        propertyId: propertyId,
+        mode: currentUserMode
+      })
+    });
+    
+    const data = await response.json();
+    console.log('Analysis response:', data);
+    
+    if (data.analysis) {
+      propertyAnalyses[propertyId] = { 
+        result: data.analysis, 
+        visible: true 
+      };
+      
+      const card = document.getElementById(`propertyCard-${propertyId}`);
+      if (card) {
+        let resDiv = card.querySelector('.analysis-result');
+        if (!resDiv) {
+          resDiv = document.createElement('div');
+          resDiv.className = 'analysis-result';
+          resDiv.id = `analysisResult-${propertyId}`;
+          resDiv.style.cssText = 'margin-top:10px;background:#f1f5f9;padding:12px;border-radius:5px;font-size:0.9em;max-height:400px;overflow-y:auto;';
+          card.appendChild(resDiv);
+        }
+        
+        try {
+          const parsed = JSON.parse(data.analysis);
+          resDiv.innerHTML = `
+            <div style="margin-bottom:8px;font-weight:bold;color:#1f2937;">Analysis Results (${currentUserMode} mode):</div>
+            <pre style="white-space: pre-wrap; font-family: monospace; font-size: 0.85em; background: white; padding: 10px; border-radius: 5px; overflow-x: auto;">
+${JSON.stringify(parsed, null, 2)}
+            </pre>
+          `;
+        } catch (e) {
+          resDiv.innerHTML = `
+            <div style="margin-bottom:8px;font-weight:bold;color:#1f2937;">Analysis Results:</div>
+            <div style="white-space: pre-wrap;">${data.analysis}</div>
+          `;
+        }
+        
+        resDiv.style.display = 'block';
+        
+        // Add a toggle button
+        let toggleBtn = card.querySelector(`#toggleAnalysisBtn-${propertyId}`);
+        if (!toggleBtn) {
+          toggleBtn = document.createElement('button');
+          toggleBtn.className = 'action-btn view-btn';
+          toggleBtn.id = `toggleAnalysisBtn-${propertyId}`;
+          toggleBtn.innerText = 'Hide Analysis';
+          toggleBtn.onclick = () => {
+            if (resDiv.style.display === 'none') {
+              resDiv.style.display = 'block';
+              toggleBtn.innerText = 'Hide Analysis';
+            } else {
+              resDiv.style.display = 'none';
+              toggleBtn.innerText = 'Show Analysis';
+            }
+          };
+          const actions = card.querySelector('.property-actions');
+          if (actions) {
+            actions.appendChild(toggleBtn);
+          }
+        }
+      }
+    } else {
+      alert('No analysis received from server');
+    }
+    
+  } catch (error) {
+    console.error('Error during analysis:', error);
+    alert('Error running analysis: ' + error.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = 'Analyze';
+    }
+  }
+}
+
+async function loadProperties() {
+  const grid = document.getElementById('propertiesGrid');
+  const favGrid = document.getElementById('favoritesGrid');
+  grid.innerHTML = '';
+  favGrid.innerHTML = '';
+  
+  if (allProperties.length === 0) {
+    allProperties = await fetchProperties();
+  }
+  
+  if (currentTab === "analyzed") {
+    if (allProperties.length === 0) {
+      grid.innerHTML = `<div style="grid-column: 1 / -1;text-align: center;padding: 4rem 2rem;color: #6b7280;"><div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.5;">🏠</div><h3>No properties found</h3><p>Properties analyzed with your extension will appear here automatically.</p><button onclick="showAddProperty()" style="background: var(--deko-green);color: white;border: none;padding: 0.75rem 1.5rem;border-radius: 8px;margin-top: 1rem;cursor: pointer;">Add Property</button></div>`;
+    } else {
+      allProperties.forEach(p => {
+        const isFav = favoritePropertyIds.includes(p._id);
+        const el = document.createElement('div');
+        el.className = 'property-card';
+        el.id = `propertyCard-${p._id}`;
+        el.innerHTML = `
+          <button class="delete-btn" title="Delete Property" aria-label="Delete" onclick="event.stopPropagation(); deleteProperty('${p._id}')">&times;</button>
+          <div class="property-header">
+              <div class="property-price">$${p.price?.toLocaleString() || '--'}</div>
+              <div class="property-status">Analyzed</div>
+          </div>
+          <div class="property-address">${p.address}</div>
+          <div class="property-details">
+              <div class="detail-item"><div class="detail-value">${p.bedrooms ?? '--'}</div><div class="detail-label">Bedrooms</div></div>
+              <div class="detail-item"><div class="detail-value">${p.bathrooms ?? '--'}</div><div class="detail-label">Bathrooms</div></div>
+              <div class="detail-item"><div class="detail-value">${p.sqft?.toLocaleString() ?? '--'}</div><div class="detail-label">Sq Ft</div></div>
+          </div>
+          <div class="property-metrics">
+              <div class="metric-row"><span class="metric-label">Price/Sq Ft:</span><span class="metric-value">$${p.price && p.sqft ? Math.round(p.price / p.sqft) : '--'}</span></div>
+          </div>
+          <div style="margin-bottom:8px;">
+            <div class="analysis-prompt" style="background:#f1f5f9;padding:8px;border-radius:5px;margin-bottom:6px;font-size:0.97em;">
+              <b>Analysis Mode:</b> ${modePrompts[currentUserMode].label}
+            </div>
+          </div>
+          <div class="property-actions">
+              <button class="action-btn deep-analysis-btn" onclick="runAnalysis('${p._id}')" id="runAnalysisBtn-${p._id}">
+                Analyze
+              </button>
+              <button class="favorite-btn${isFav ? " favorited" : ""}" title="${isFav ? "Remove from Favorites" : "Add to Favorites"}" data-propid="${p._id}">
+                ${isFav
+                  ? `<svg viewBox="0 0 24 24"><path class="heart-fill" d="M12 21s-5.2-4.48-8.1-7.24C1.1 11.38 1 8.28 3.2 6.22c2.07-1.93 5.18-1.64 7.07.49L12 7.68l1.73-1.02c1.89-2.13 5-2.42 7.07-.49C23 8.28 22.9 11.38 20.1 13.76 17.2 16.52 12 21 12 21z" /></svg>`
+                  : `<svg viewBox="0 0 24 24"><path class="heart-fill" d="M12 21s-5.2-4.48-8.1-7.24C1.1 11.38 1 8.28 3.2 6.22c2.07-1.93 5.18-1.64 7.07.49L12 7.68l1.73-1.02c1.89-2.13 5-2.42 7.07-.49C23 8.28 22.9 11.38 20.1 13.76 17.2 16.52 12 21 12 21z"/></svg>`}
+              </button>
+          </div>
+          <div class="analysis-result" id="analysisResult-${p._id}" style="display:none;"></div>
+        `;
+        el.querySelector('.favorite-btn').onclick = function(e) {
+          e.stopPropagation();
+          toggleFavorite(p._id);
+        };
+        grid.appendChild(el);
+      });
+    }
+  }
+  
+  if (currentTab === "favorites") {
+    let favoriteProps = allProperties.filter(p => favoritePropertyIds.includes(p._id));
+    if (favoriteProps.length === 0) {
+      favGrid.innerHTML = `<div style="grid-column: 1 / -1;text-align: center;padding: 2rem;color: #6b7280;">No favorites yet. Click the <span style="color:#e53935;font-size:1.2em;">♥</span> on a property to add it here.</div>`;
+    } else {
+      favoriteProps.forEach(p => {
+        const el = document.createElement('div');
+        el.className = 'property-card';
+        el.id = `propertyCard-${p._id}`;
+        el.innerHTML = `
+          <button class="delete-btn" title="Delete Property" aria-label="Delete" onclick="event.stopPropagation(); deleteProperty('${p._id}')">&times;</button>
+          <div class="property-header">
+              <div class="property-price">$${p.price?.toLocaleString() || '--'}</div>
+              <div class="property-status">Analyzed</div>
+          </div>
+          <div class="property-address">${p.address}</div>
+          <div class="property-details">
+              <div class="detail-item"><div class="detail-value">${p.bedrooms ?? '--'}</div><div class="detail-label">Bedrooms</div></div>
+              <div class="detail-item"><div class="detail-value">${p.bathrooms ?? '--'}</div><div class="detail-label">Bathrooms</div></div>
+              <div class="detail-item"><div class="detail-value">${p.sqft?.toLocaleString() ?? '--'}</div><div class="detail-label">Sq Ft</div></div>
+          </div>
+          <div class="property-metrics">
+              <div class="metric-row"><span class="metric-label">Price/Sq Ft:</span><span class="metric-value">$${p.price && p.sqft ? Math.round(p.price / p.sqft) : '--'}</span></div>
+          </div>
+          <div style="margin-bottom:8px;">
+            <div class="analysis-prompt" style="background:#f1f5f9;padding:8px;border-radius:5px;margin-bottom:6px;font-size:0.97em;">
+              <b>Analysis Mode:</b> ${modePrompts[currentUserMode].label}
+            </div>
+          </div>
+          <div class="property-actions">
+              <button class="action-btn deep-analysis-btn" onclick="runAnalysis('${p._id}')" id="runAnalysisBtn-${p._id}">
+                Analyze
+              </button>
+              <button class="favorite-btn favorited" title="Remove from Favorites" data-propid="${p._id}">
+                <svg viewBox="0 0 24 24"><path class="heart-fill" d="M12 21s-5.2-4.48-8.1-7.24C1.1 11.38 1 8.28 3.2 6.22c2.07-1.93 5.18-1.64 7.07.49L12 7.68l1.73-1.02c1.89-2.13 5-2.42 7.07-.49C23 8.28 22.9 11.38 20.1 13.76 17.2 16.52 12 21 12 21z" /></svg>
+              </button>
+          </div>
+          <div class="analysis-result" id="analysisResult-${p._id}" style="display:none;"></div>
+        `;
+        el.querySelector('.favorite-btn').onclick = function(e) {
+          e.stopPropagation();
+          toggleFavorite(p._id);
+        };
+        favGrid.appendChild(el);
+      });
+    }
+  }
+  
+  // Restore any existing analyses
+  Object.keys(propertyAnalyses).forEach(pid => {
+    if (propertyAnalyses[pid].visible && propertyAnalyses[pid].result) {
+      const resDiv = document.getElementById(`analysisResult-${pid}`);
+      if (resDiv) {
+        try {
+          const parsed = JSON.parse(propertyAnalyses[pid].result);
+          resDiv.innerHTML = `
+            <div style="margin-bottom:8px;font-weight:bold;">Analysis Results:</div>
+            <pre style="white-space: pre-wrap; font-family: monospace; font-size: 0.85em; background: white; padding: 10px; border-radius: 5px;">
+${JSON.stringify(parsed, null, 2)}
+            </pre>
+          `;
+          resDiv.style.display = 'block';
+        } catch (e) {
+          resDiv.innerHTML = `<div>${propertyAnalyses[pid].result}</div>`;
+          resDiv.style.display = 'block';
+        }
+      }
+    }
+  });
+}
+
+document.getElementById('addPropertyForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const address = document.getElementById('addressInput').value;
+  const price = Number(document.getElementById('priceInput').value);
+  const bedrooms = Number(document.getElementById('bedroomsInput').value);
+  const bathrooms = Number(document.getElementById('bathroomsInput').value);
+  const sqft = Number(document.getElementById('sqftInput').value);
+  await fetch(`${API_BASE_URL}/properties`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({address, price, bedrooms, bathrooms, sqft})
+  });
+  hideAddProperty();
+  allProperties = await fetchProperties();
+  await loadProperties();
+});
+
+function showAddProperty() {
+  document.getElementById('addPropertyForm').style.display = 'flex';
+}
+
+function hideAddProperty() {
+  document.getElementById('addPropertyForm').style.display = 'none';
+}
+
+function toggleUserDropdown(e) {
+  const dropdown = document.getElementById('userDropdown');
+  dropdown.classList.toggle('show');
+  if (e) e.stopPropagation();
+}
+
+document.getElementById('userDropdown').addEventListener('click', function(e) {
+  e.stopPropagation();
+});
+
+document.addEventListener('click', function(e) {
+  const userProfile = document.querySelector('.user-profile');
+  const dropdown = document.getElementById('userDropdown');
+  if (!userProfile.contains(e.target)) {
+    dropdown.classList.remove('show');
+  }
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.classList.remove('show');
+  }
+});
+
+document.addEventListener('DOMContentLoaded', async function() {
+  switchTab('analyzed');
+  await loadUserInfoAndMode();
+  allProperties = await fetchProperties();
+  await loadProperties();
+});
+</script>
+</body>
+</html>
