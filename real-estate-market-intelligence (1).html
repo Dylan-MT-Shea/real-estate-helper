@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate Market Intelligence Platform</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f3f4f6;
+        }
+        
+        .map-container {
+            height: 500px;
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .loading {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .tab-active {
+            color: #4f46e5;
+            border-bottom: 2px solid #4f46e5;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .status-pending {
+            background-color: #f59e0b;
+            color: white;
+        }
+        
+        .status-inactive {
+            background-color: #6b7280;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        
+        // Icons as simple SVG components
+        const Icons = {
+            Map: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+            ),
+            TrendingUp: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+            ),
+            Compare: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            ),
+            Search: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            ),
+            Home: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+            ),
+            Bell: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+            ),
+            FileText: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            ),
+            Settings: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            ),
+            Download: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
+            ),
+            Plus: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+            ),
+            X: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            )
+        };
+        
+        // Mock data generation
+        const generateMockData = () => {
+            const markets = [
+                { id: 1, name: "Austin, TX", state: "TX", zip: "78701", lat: 30.2672, lng: -97.7431, score: 92, trend: "up", avgPrice: 542000, growth: 12.5, risk: "low", population: 964254 },
+                { id: 2, name: "Nashville, TN", state: "TN", zip: "37201", lat: 36.1627, lng: -86.7816, score: 88, trend: "up", avgPrice: 425000, growth: 10.2, risk: "low", population: 689447 },
+                { id: 3, name: "Miami, FL", state: "FL", zip: "33101", lat: 25.7617, lng: -80.1918, score: 85, trend: "stable", avgPrice: 680000, growth: 8.7, risk: "medium", population: 467963 },
+                { id: 4, name: "Denver, CO", state: "CO", zip: "80201", lat: 39.7392, lng: -104.9903, score: 87, trend: "up", avgPrice: 595000, growth: 9.8, risk: "low", population: 715522 },
+                { id: 5, name: "Phoenix, AZ", state: "AZ", zip: "85001", lat: 33.4484, lng: -112.0740, score: 84, trend: "stable", avgPrice: 485000, growth: 7.5, risk: "medium", population: 1608139 },
+                { id: 6, name: "Portland, OR", state: "OR", zip: "97201", lat: 45.5152, lng: -122.6784, score: 81, trend: "down", avgPrice: 525000, growth: -2.1, risk: "medium", population: 652503 },
+                { id: 7, name: "Raleigh, NC", state: "NC", zip: "27601", lat: 35.7796, lng: -78.6382, score: 89, trend: "up", avgPrice: 415000, growth: 11.3, risk: "low", population: 474069 },
+                { id: 8, name: "Atlanta, GA", state: "GA", zip: "30301", lat: 33.7490, lng: -84.3880, score: 86, trend: "up", avgPrice: 395000, growth: 9.2, risk: "low", population: 498715 }
+            ];
+
+            const historicalData = Array.from({ length: 24 }, (_, i) => {
+                const date = new Date();
+                date.setMonth(date.getMonth() - (23 - i));
+                return {
+                    month: date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+                    price: Math.floor(400000 + Math.random() * 100000 + i * 3000),
+                    inventory: Math.floor(1000 - i * 10 + Math.random() * 100),
+                    daysOnMarket: Math.floor(25 + Math.random() * 15),
+                    salesVolume: Math.floor(150 + Math.random() * 100)
+                };
+            });
+
+            const demographics = {
+                population: 892453,
+                medianAge: 34.2,
+                medianIncome: 72500,
+                unemploymentRate: 3.8,
+                educationBachelor: 42.5,
+                crimeRate: 2.3
+            };
+
+            const amenities = [
+                { type: "Coffee Shops", count: 145, growth: 12, icon: "☕" },
+                { type: "Restaurants", count: 523, growth: 8, icon: "🍽️" },
+                { type: "Grocery Stores", count: 87, growth: 3, icon: "🛒" },
+                { type: "Parks", count: 42, growth: 5, icon: "🌳" },
+                { type: "Schools", count: 68, growth: 2, icon: "🏫" },
+                { type: "Hospitals", count: 12, growth: 1, icon: "🏥" }
+            ];
+
+            const properties = Array.from({ length: 20 }, (_, i) => ({
+                id: i + 1,
+                address: `${1000 + i * 100} ${['Main', 'Oak', 'Maple', 'Pine', 'Elm'][Math.floor(Math.random() * 5)]} Street`,
+                price: Math.floor(300000 + Math.random() * 500000),
+                beds: Math.floor(2 + Math.random() * 3),
+                baths: Math.floor(1 + Math.random() * 3),
+                sqft: Math.floor(1200 + Math.random() * 2000),
+                yearBuilt: Math.floor(1980 + Math.random() * 40),
+                daysOnMarket: Math.floor(Math.random() * 90),
+                status: ["For Sale", "Pending", "Recently Sold"][Math.floor(Math.random() * 3)]
+            }));
+
+            return { markets, historicalData, demographics, amenities, properties };
+        };
+        
+        // Chart Component
+        const SimpleChart = ({ data, type, title }) => {
+            const canvasRef = useRef(null);
+            const chartRef = useRef(null);
+            
+            useEffect(() => {
+                if (canvasRef.current) {
+                    const ctx = canvasRef.current.getContext('2d');
+                    
+                    if (chartRef.current) {
+                        chartRef.current.destroy();
+                    }
+                    
+                    chartRef.current = new Chart(ctx, {
+                        type: type,
+                        data: data,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                },
+                                title: {
+                                    display: true,
+                                    text: title
+                                }
+                            },
+                            scales: type !== 'pie' && type !== 'doughnut' && type !== 'radar' ? {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            } : undefined
+                        }
+                    });
+                }
+                
+                return () => {
+                    if (chartRef.current) {
+                        chartRef.current.destroy();
+                    }
+                };
+            }, [data, type, title]);
+            
+            return (
+                <div className="chart-container">
+                    <canvas ref={canvasRef}></canvas>
+                </div>
+            );
+        };
+        
+        // Map Component
+        const MapView = ({ markets, onMarketClick }) => {
+            return (
+                <div className="map-container flex items-center justify-center">
+                    <div className="text-center text-white">
+                        <h2 className="text-3xl font-bold mb-4">Interactive Market Map</h2>
+                        <p className="mb-6">Click on any market below to view details</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
+                            {markets.map(market => (
+                                <button
+                                    key={market.id}
+                                    onClick={() => onMarketClick(market)}
+                                    className="bg-white/20 backdrop-blur-sm p-3 rounded-lg hover:bg-white/30 transition text-white"
+                                >
+                                    <div className="font-bold">{market.name}</div>
+                                    <div className="text-sm">Score: {market.score}</div>
+                                    <div className="text-sm">${(market.avgPrice/1000).toFixed(0)}K</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Market Profile Component
+        const MarketProfile = ({ market, historicalData, demographics, amenities }) => {
+            if (!market) {
+                return (
+                    <div className="text-center py-12">
+                        <p className="text-gray-500">Please select a market from the Explore tab</p>
+                    </div>
+                );
+            }
+            
+            const priceChartData = {
+                labels: historicalData.map(d => d.month),
+                datasets: [{
+                    label: 'Average Price',
+                    data: historicalData.map(d => d.price),
+                    borderColor: 'rgb(139, 92, 246)',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    fill: true
+                }]
+            };
+            
+            const inventoryChartData = {
+                labels: historicalData.slice(0, 12).map(d => d.month),
+                datasets: [
+                    {
+                        label: 'Inventory',
+                        data: historicalData.slice(0, 12).map(d => d.inventory),
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    },
+                    {
+                        label: 'Sales Volume',
+                        data: historicalData.slice(0, 12).map(d => d.salesVolume),
+                        borderColor: 'rgb(245, 158, 11)',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    }
+                ]
+            };
+            
+            const scoreData = {
+                labels: ['Employment', 'Affordability', 'Growth', 'Safety', 'Amenities', 'Climate'],
+                datasets: [{
+                    label: 'Score',
+                    data: [85, 72, 90, 88, 79, 65],
+                    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                    borderColor: 'rgb(139, 92, 246)',
+                    pointBackgroundColor: 'rgb(139, 92, 246)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(139, 92, 246)'
+                }]
+            };
+            
+            return (
+                <div className="space-y-6">
+                    {/* Summary Card */}
+                    <div className="gradient-bg p-6 rounded-xl text-white">
+                        <h2 className="text-3xl font-bold mb-2">{market.name}</h2>
+                        <div className="flex items-center gap-6 mb-4">
+                            <div>
+                                <p className="text-5xl font-bold">{market.score}</p>
+                                <p className="text-sm opacity-90">Investability Score</p>
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-lg mb-2">📈 Strong growth market with excellent fundamentals</p>
+                                <p className="text-sm opacity-90">Higher than 78% of comparable markets</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                            <div>
+                                <p className="text-sm opacity-75">Avg Price</p>
+                                <p className="text-xl font-bold">${(market.avgPrice/1000).toFixed(0)}K</p>
+                            </div>
+                            <div>
+                                <p className="text-sm opacity-75">Growth Rate</p>
+                                <p className="text-xl font-bold">{market.growth > 0 ? '+' : ''}{market.growth}%</p>
+                            </div>
+                            <div>
+                                <p className="text-sm opacity-75">Population</p>
+                                <p className="text-xl font-bold">{(market.population/1000).toFixed(0)}K</p>
+                            </div>
+                            <div>
+                                <p className="text-sm opacity-75">Risk Level</p>
+                                <p className="text-xl font-bold capitalize">{market.risk}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Key Metrics */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-white p-4 rounded-lg shadow card-hover">
+                            <p className="text-gray-500 text-sm">Median Income</p>
+                            <p className="text-2xl font-bold">${(demographics.medianIncome/1000).toFixed(0)}K</p>
+                            <p className="text-green-500 text-sm">↑ 4.1% YoY</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg shadow card-hover">
+                            <p className="text-gray-500 text-sm">Unemployment</p>
+                            <p className="text-2xl font-bold">{demographics.unemploymentRate}%</p>
+                            <p className="text-green-500 text-sm">↓ 0.5% YoY</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg shadow card-hover">
+                            <p className="text-gray-500 text-sm">Education (Bachelor+)</p>
+                            <p className="text-2xl font-bold">{demographics.educationBachelor}%</p>
+                            <p className="text-green-500 text-sm">↑ 2.3% YoY</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg shadow card-hover">
+                            <p className="text-gray-500 text-sm">Days on Market</p>
+                            <p className="text-2xl font-bold">28</p>
+                            <p className="text-green-500 text-sm">↓ 5 days YoY</p>
+                        </div>
+                    </div>
+                    
+                    {/* Charts */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <SimpleChart 
+                                data={priceChartData} 
+                                type="line" 
+                                title="Price Trends (24 Months)"
+                            />
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <SimpleChart 
+                                data={scoreData} 
+                                type="radar" 
+                                title="Investability Components"
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <SimpleChart 
+                                data={inventoryChartData} 
+                                type="line" 
+                                title="Inventory & Sales Volume"
+                            />
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <h3 className="text-lg font-semibold mb-4">Local Amenities</h3>
+                            <div className="space-y-3">
+                                {amenities.map((amenity, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-2xl">{amenity.icon}</span>
+                                            <span className="text-gray-700">{amenity.type}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold">{amenity.count}</span>
+                                            <span className="text-green-500 text-sm">+{amenity.growth}%</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Recent News */}
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h3 className="text-lg font-semibold mb-4">Recent News & Developments</h3>
+                        <div className="space-y-4">
+                            <div className="border-l-4 border-indigo-500 pl-4">
+                                <p className="font-semibold">Major Tech Company Announces 5,000 Job Expansion</p>
+                                <p className="text-gray-600 text-sm">2 days ago - Expected to boost local economy by $2.5B annually</p>
+                            </div>
+                            <div className="border-l-4 border-green-500 pl-4">
+                                <p className="font-semibold">New 500-Unit Mixed-Use Development Approved</p>
+                                <p className="text-gray-600 text-sm">1 week ago - Will add residential and 100K sqft retail downtown</p>
+                            </div>
+                            <div className="border-l-4 border-blue-500 pl-4">
+                                <p className="font-semibold">City Approves $450M Transit Expansion</p>
+                                <p className="text-gray-600 text-sm">2 weeks ago - New light rail to connect suburbs by 2028</p>
+                            </div>
+                            <div className="border-l-4 border-yellow-500 pl-4">
+                                <p className="font-semibold">Q3 Housing Report Shows 12% Price Appreciation</p>
+                                <p className="text-gray-600 text-sm">3 weeks ago - Strongest growth in the region</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Compare Markets Component
+        const CompareMarkets = ({ markets }) => {
+            const [selectedMarkets, setSelectedMarkets] = useState([markets[0], markets[1], markets[2]]);
+            
+            const toggleMarket = (market) => {
+                if (selectedMarkets.find(m => m.id === market.id)) {
+                    setSelectedMarkets(selectedMarkets.filter(m => m.id !== market.id));
+                } else if (selectedMarkets.length < 4) {
+                    setSelectedMarkets([...selectedMarkets, market]);
+                }
+            };
+            
+            const comparisonData = {
+                labels: selectedMarkets.map(m => m.name),
+                datasets: [
+                    {
+                        label: 'Investability Score',
+                        data: selectedMarkets.map(m => m.score),
+                        backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                    },
+                    {
+                        label: 'Growth %',
+                        data: selectedMarkets.map(m => m.growth),
+                        backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                    }
+                ]
+            };
+            
+            return (
+                <div className="space-y-6">
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h3 className="text-xl font-semibold mb-4">Select Markets to Compare (Max 4)</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {markets.map(market => (
+                                <button
+                                    key={market.id}
+                                    onClick={() => toggleMarket(market)}
+                                    className={`px-4 py-2 rounded-lg transition ${
+                                        selectedMarkets.find(m => m.id === market.id)
+                                            ? 'bg-indigo-600 text-white'
+                                            : 'bg-gray-100 hover:bg-gray-200'
+                                    }`}
+                                >
+                                    {market.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {selectedMarkets.map(market => (
+                            <div key={market.id} className="bg-white p-6 rounded-lg shadow card-hover">
+                                <h3 className="text-lg font-semibold mb-4">{market.name}</h3>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Investability</span>
+                                        <span className="font-bold text-xl">{market.score}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Avg Price</span>
+                                        <span className="font-semibold">${(market.avgPrice/1000).toFixed(0)}K</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Growth</span>
+                                        <span className={`font-semibold ${market.growth > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                            {market.growth > 0 ? '+' : ''}{market.growth}%
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Population</span>
+                                        <span className="font-semibold">{(market.population/1000).toFixed(0)}K</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Risk Level</span>
+                                        <span className={`font-semibold capitalize ${
+                                            market.risk === 'low' ? 'text-green-500' : 
+                                            market.risk === 'medium' ? 'text-yellow-500' : 'text-red-500'
+                                        }`}>
+                                            {market.risk}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {selectedMarkets.length > 0 && (
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <SimpleChart 
+                                data={comparisonData} 
+                                type="bar" 
+                                title="Market Comparison"
+                            />
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        
+        // Look-alike Markets Component
+        const LookAlikeMarkets = ({ markets }) => {
+            const [selectedMarket, setSelectedMarket] = useState(markets[0]);
+            const [similarMarkets, setSimilarMarkets] = useState([]);
+            
+            useEffect(() => {
+                const others = markets.filter(m => m.id !== selectedMarket.id);
+                const similar = others
+                    .map(market => ({
+                        ...market,
+                        similarity: Math.floor(75 + Math.random() * 20),
+                        matchReasons: [
+                            'Similar population growth rate',
+                            'Comparable median income levels',
+                            'Matching employment sectors',
+                            'Similar demographic profile',
+                            'Comparable housing inventory'
+                        ].slice(0, Math.floor(Math.random() * 3) + 2)
+                    }))
+                    .sort((a, b) => b.similarity - a.similarity);
+                setSimilarMarkets(similar);
+            }, [selectedMarket, markets]);
+            
+            return (
+                <div className="space-y-6">
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h3 className="text-xl font-semibold mb-4">Find Similar Markets</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Select Target Market</label>
+                                <select 
+                                    className="w-full p-3 border rounded-lg"
+                                    value={selectedMarket.id}
+                                    onChange={(e) => setSelectedMarket(markets.find(m => m.id === parseInt(e.target.value)))}
+                                >
+                                    {markets.map(market => (
+                                        <option key={market.id} value={market.id}>{market.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            
+                            <div className="p-4 bg-indigo-50 rounded-lg">
+                                <p className="text-sm text-gray-600 mb-2">Selected Market Profile:</p>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div>
+                                        <p className="text-xs text-gray-500">Score</p>
+                                        <p className="font-semibold">{selectedMarket.score}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500">Avg Price</p>
+                                        <p className="font-semibold">${(selectedMarket.avgPrice/1000).toFixed(0)}K</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500">Growth</p>
+                                        <p className="font-semibold">{selectedMarket.growth}%</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500">Population</p>
+                                        <p className="font-semibold">{(selectedMarket.population/1000).toFixed(0)}K</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h3 className="text-xl font-semibold mb-4">Similar Markets (AI-Powered Matching)</h3>
+                        <div className="space-y-4">
+                            {similarMarkets.map((market, idx) => (
+                                <div key={market.id} className="border rounded-lg p-4 hover:bg-gray-50 transition">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <span className="text-2xl font-bold text-indigo-600">#{idx + 1}</span>
+                                                <div>
+                                                    <h4 className="text-lg font-semibold">{market.name}</h4>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <div className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs font-semibold">
+                                                            {market.similarity}% Match
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                {market.matchReasons.map((reason, i) => (
+                                                    <span key={i} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs">
+                                                        ✓ {reason}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="text-right ml-4">
+                                            <p className="text-lg font-bold">${(market.avgPrice/1000).toFixed(0)}K</p>
+                                            <p className={`text-sm font-semibold ${market.growth > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                {market.growth > 0 ? '↑' : '↓'} {Math.abs(market.growth)}%
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-1">Score: {market.score}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Properties Component
+        const Properties = ({ properties }) => {
+            const [filter, setFilter] = useState('all');
+            
+            const filteredProperties = properties.filter(p => 
+                filter === 'all' || p.status.toLowerCase().includes(filter.toLowerCase())
+            );
+            
+            return (
+                <div className="space-y-6">
+                    <div className="bg-white p-4 rounded-lg shadow">
+                        <div className="flex justify-between items-center">
+                            <div className="flex gap-2">
+                                {['all', 'For Sale', 'Pending', 'Recently Sold'].map(f => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setFilter(f)}
+                                        className={`px-4 py-2 rounded ${
+                                            filter === f ? 'bg-indigo-600 text-white' : 'bg-gray-100 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        {f === 'all' ? 'All Properties' : f}
+                                    </button>
+                                ))}
+                            </div>
+                            <span className="text-gray-600">{filteredProperties.length} properties</span>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredProperties.slice(0, 9).map(property => (
+                            <div key={property.id} className="bg-white rounded-lg shadow hover:shadow-lg transition">
+                                <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-t-lg relative">
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <Icons.Home />
+                                    </div>
+                                    <span className={`absolute top-2 right-2 px-3 py-1 rounded text-white text-sm font-semibold ${
+                                        property.status === 'For Sale' ? 'bg-green-500' :
+                                        property.status === 'Pending' ? 'bg-yellow-500' : 'bg-gray-500'
+                                    }`}>
+                                        {property.status}
+                                    </span>
+                                </div>
+                                <div className="p-4">
+                                    <p className="text-2xl font-bold mb-1">${property.price.toLocaleString()}</p>
+                                    <p className="text-gray-600 mb-2">{property.address}</p>
+                                    <div className="flex gap-4 text-sm text-gray-700 mb-3">
+                                        <span>🛏️ {property.beds} beds</span>
+                                        <span>🚿 {property.baths} baths</span>
+                                        <span>📐 {property.sqft.toLocaleString()} sqft</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pt-3 border-t">
+                                        <span className="text-sm text-gray-500">Built {property.yearBuilt}</span>
+                                        <span className="text-sm font-semibold text-indigo-600">{property.daysOnMarket} days</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+        
+        // Alerts Component
+        const AlertsWatchlist = ({ markets }) => {
+            const [alerts, setAlerts] = useState([
+                { id: 1, market: markets[0].name, condition: 'Score > 90', status: 'active', lastTriggered: '2 days ago' },
+                { id: 2, market: markets[2].name, condition: 'Price Growth > 10%', status: 'triggered', lastTriggered: 'Today' },
+                { id: 3, market: markets[4].name, condition: 'Inventory < 500', status: 'active', lastTriggered: 'Never' }
+            ]);
+            const [showModal, setShowModal] = useState(false);
+            
+            return (
+                <div className="space-y-6">
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-semibold">My Watchlist</h3>
+                            <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+                                <Icons.Plus />
+                                Add Market
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {markets.slice(0, 3).map(market => (
+                                <div key={market.id} className="border rounded-lg p-4 hover:shadow-lg transition">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <h4 className="font-semibold text-lg">{market.name}</h4>
+                                        <button className="text-gray-400 hover:text-red-500">
+                                            <Icons.X />
+                                        </button>
+                                    </div>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Score</span>
+                                            <span className="font-semibold">{market.score}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Avg Price</span>
+                                            <span className="font-semibold">${(market.avgPrice/1000).toFixed(0)}K</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Growth</span>
+                                            <span className={`font-semibold ${market.growth > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                {market.growth > 0 ? '+' : ''}{market.growth}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-semibold">Active Alerts</h3>
+                            <button 
+                                onClick={() => setShowModal(true)}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                            >
+                                <Icons.Bell />
+                                Create Alert
+                            </button>
+                        </div>
+                        <div className="space-y-3">
+                            {alerts.map(alert => (
+                                <div key={alert.id} className="border rounded-lg p-4 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-3 h-3 rounded-full ${
+                                            alert.status === 'triggered' ? 'bg-yellow-500 loading' : 'bg-green-500'
+                                        }`} />
+                                        <div>
+                                            <p className="font-semibold">{alert.market}</p>
+                                            <p className="text-sm text-gray-600">{alert.condition}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm text-gray-500">Last triggered</p>
+                                        <p className="text-sm font-semibold">{alert.lastTriggered}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    {showModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white p-6 rounded-lg w-96">
+                                <h3 className="text-xl font-semibold mb-4">Create New Alert</h3>
+                                <div className="space-y-4">
+                                    <select className="w-full p-2 border rounded">
+                                        <option>Select Market</option>
+                                        {markets.map(m => <option key={m.id}>{m.name}</option>)}
+                                    </select>
+                                    <select className="w-full p-2 border rounded">
+                                        <option>Select Metric</option>
+                                        <option>Investability Score</option>
+                                        <option>Average Price</option>
+                                        <option>Growth Rate</option>
+                                    </select>
+                                    <input type="text" placeholder="Condition (e.g., > 90)" className="w-full p-2 border rounded" />
+                                    <div className="flex justify-end gap-2">
+                                        <button 
+                                            onClick={() => setShowModal(false)}
+                                            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            onClick={() => setShowModal(false)}
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                                        >
+                                            Create
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        
+        // Reports Component
+        const ReportGenerator = () => {
+            const [generating, setGenerating] = useState(false);
+            const [reportReady, setReportReady] = useState(false);
+            
+            const generateReport = () => {
+                setGenerating(true);
+                setTimeout(() => {
+                    setGenerating(false);
+                    setReportReady(true);
+                }, 2000);
+            };
+            
+            return (
+                <div className="space-y-6">
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h3 className="text-xl font-semibold mb-6">Generate Custom Report</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Report Type</label>
+                                <select className="w-full p-3 border rounded-lg">
+                                    <option>Market Analysis Report</option>
+                                    <option>Investment Opportunity Report</option>
+                                    <option>Comparative Market Analysis</option>
+                                    <option>Market Forecast Report</option>
+                                    <option>Risk Assessment Report</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Time Period</label>
+                                <select className="w-full p-3 border rounded-lg">
+                                    <option>Last 6 Months</option>
+                                    <option>Last 12 Months</option>
+                                    <option>Last 24 Months</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Include Sections</label>
+                                <div className="space-y-2">
+                                    {['Executive Summary', 'Market Metrics', 'Demographics', 'Investment Scoring', 'Risk Assessment'].map(section => (
+                                        <label key={section} className="flex items-center">
+                                            <input type="checkbox" className="mr-2" defaultChecked />
+                                            <span>{section}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <button 
+                                onClick={generateReport}
+                                disabled={generating}
+                                className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 flex items-center justify-center gap-2"
+                            >
+                                {generating ? (
+                                    <>
+                                        <span className="loading">⏳</span>
+                                        <span>Generating Report...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Icons.FileText />
+                                        <span>Generate Report</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {reportReady && (
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <div className="flex items-center gap-2 text-green-600 mb-4">
+                                <span className="text-2xl">✓</span>
+                                <h3 className="text-xl font-semibold">Report Ready</h3>
+                            </div>
+                            <div className="p-4 bg-gray-50 rounded mb-4">
+                                <p className="font-semibold">Market Analysis Report</p>
+                                <p className="text-sm text-gray-600">Generated: {new Date().toLocaleDateString()}</p>
+                                <p className="text-sm text-gray-600">24 pages • 6 sections • 15 charts</p>
+                            </div>
+                            <div className="grid grid-cols-3 gap-3">
+                                <button className="py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center justify-center gap-2">
+                                    <Icons.Download />
+                                    PDF
+                                </button>
+                                <button className="py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center justify-center gap-2">
+                                    <Icons.Download />
+                                    Excel
+                                </button>
+                                <button className="py-2 border border-gray-300 rounded hover:bg-gray-50">
+                                    📧 Email
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        
+        // Main App Component
+        const App = () => {
+            const [currentView, setCurrentView] = useState('explore');
+            const [selectedMarket, setSelectedMarket] = useState(null);
+            
+            const { markets, historicalData, demographics, amenities, properties } = useMemo(() => generateMockData(), []);
+            
+            const handleMarketClick = (market) => {
+                setSelectedMarket(market);
+                setCurrentView('profile');
+            };
+            
+            const navigation = [
+                { id: 'explore', label: 'Explore', icon: Icons.Map },
+                { id: 'profile', label: 'Market Profile', icon: Icons.TrendingUp },
+                { id: 'compare', label: 'Compare', icon: Icons.Compare },
+                { id: 'lookalike', label: 'Look-alike', icon: Icons.Search },
+                { id: 'properties', label: 'Properties', icon: Icons.Home },
+                { id: 'alerts', label: 'Alerts', icon: Icons.Bell },
+                { id: 'reports', label: 'Reports', icon: Icons.FileText }
+            ];
+            
+            const renderContent = () => {
+                switch(currentView) {
+                    case 'explore':
+                        return <MapView markets={markets} onMarketClick={handleMarketClick} />;
+                    case 'profile':
+                        return <MarketProfile market={selectedMarket} historicalData={historicalData} demographics={demographics} amenities={amenities} />;
+                    case 'compare':
+                        return <CompareMarkets markets={markets} />;
+                    case 'lookalike':
+                        return <LookAlikeMarkets markets={markets} />;
+                    case 'properties':
+                        return <Properties properties={properties} />;
+                    case 'alerts':
+                        return <AlertsWatchlist markets={markets} />;
+                    case 'reports':
+                        return <ReportGenerator />;
+                    default:
+                        return null;
+                }
+            };
+            
+            return (
+                <div className="min-h-screen bg-gray-50">
+                    {/* Header */}
+                    <header className="bg-white shadow-sm border-b">
+                        <div className="max-w-7xl mx-auto px-4 py-4">
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg"></div>
+                                    <div>
+                                        <h1 className="text-xl font-bold">RE Market Intelligence</h1>
+                                        <p className="text-xs text-gray-500">Real-time market analytics & forecasting</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex-1 max-w-xl mx-8">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Search markets, zip codes, or addresses..."
+                                            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        />
+                                        <div className="absolute left-3 top-2.5">
+                                            <Icons.Search />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-3">
+                                    <button className="p-2 hover:bg-gray-100 rounded-lg">
+                                        <Icons.Bell />
+                                    </button>
+                                    <button className="p-2 hover:bg-gray-100 rounded-lg">
+                                        <Icons.Settings />
+                                    </button>
+                                    <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                        U
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    {/* Navigation */}
+                    <nav className="bg-white border-b sticky top-0 z-40">
+                        <div className="max-w-7xl mx-auto px-4">
+                            <div className="flex">
+                                {navigation.map(item => {
+                                    const Icon = item.icon;
+                                    return (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => setCurrentView(item.id)}
+                                            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition ${
+                                                currentView === item.id
+                                                    ? 'border-indigo-600 text-indigo-600'
+                                                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                                            }`}
+                                        >
+                                            <Icon />
+                                            <span className="font-medium">{item.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </nav>
+                    
+                    {/* Main Content */}
+                    <main className="max-w-7xl mx-auto p-4">
+                        {renderContent()}
+                    </main>
+                </div>
+            );
+        };
+        
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
